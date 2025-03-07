@@ -93,5 +93,24 @@ func (this *User) DoMessage(msg string) {
 			this.SendMessage("name changed! your new name is : " + this.Name)
 			this.server.maplock.Unlock()
 		}
+	} else if len(msg) > 4 && msg[:3] == "to|" {
+		rName := strings.Split(msg, "|")[1]
+		if rName == "" {
+			this.SendMessage("wrong format! use \"to|someone|message\"")
+			return
+		}
+		rUser, ok := this.server.OnlineMap[rName]
+		if !ok {
+			this.SendMessage("user name doesnt exist!")
+			return
+		}
+		content := strings.Split(msg, "|")[2]
+		if content == "" {
+			this.SendMessage("empty message!")
+			return
+		}
+		rUser.SendMessage(this.Name + " said to you: " + content)
+		this.SendMessage("message sent")
+
 	}
 }

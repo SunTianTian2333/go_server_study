@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -53,16 +54,26 @@ func (this *Server) ListenMessage() {
 // handler
 func (this *Server) Handler(conn net.Conn) {
 
-	user := NewUser(conn)
+	user := NewUser(conn, this)
+	// online
+	user.Online()
+	//receive msg from client
+	go func() {
+		buf := make([]byte, 4096)
+		for {
+			n, err := conn.Read(buf)
+			if n == 0 {
+				user.Offline()
+			}
 
-	// add user to onlinelist
-	this.maplock.Lock()
-	this.OnlineMap[user.Name] = user
-	this.maplock.Unlock()
-
-	//broadcast msg
-	this.BroadCast(user, "is online now")
-
+			if err != nil && err != io.EOF {
+				fmt.Println("conn read err", err)
+				return
+			}
+			msg := string(buf[:n-1])
+			user.DoMessage(msg)
+		}
+	}()
 	// block
 	select {}
 }

@@ -57,6 +57,9 @@ func (this *User) Offline() {
 	delete(this.server.OnlineMap, this.Name)
 	this.server.maplock.Unlock()
 
+	//clear
+	close(this.C)
+	this.conn.Close()
 	//broadcast msg
 	this.server.BroadCast(this, "is offline now")
 }

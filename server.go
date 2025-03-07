@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 type Server struct {
@@ -57,6 +58,8 @@ func (this *Server) Handler(conn net.Conn) {
 	user := NewUser(conn, this)
 	// online
 	user.Online()
+	// channel for listen user active
+	islive := make(chan bool)
 	//receive msg from client
 	go func() {
 		buf := make([]byte, 4096)
@@ -72,10 +75,21 @@ func (this *Server) Handler(conn net.Conn) {
 			}
 			msg := string(buf[:n-1])
 			user.DoMessage(msg)
+			fmt.Println("receive mseeage from " + user.Name + ":" + msg)
+			islive <- true
 		}
 	}()
 	// block
-	select {}
+	for {
+		select {
+		case <-islive:
+
+		case <-time.After(time.Second * 100):
+			user.SendMessage("long time silent,you were kicked out!")
+			user.Offline()
+			return
+		}
+	}
 }
 
 // start server

@@ -69,10 +69,14 @@ func (this *User) SendMessage(msg string) {
 	this.conn.Write([]byte(msg + "\n"))
 }
 
+// deal mode
+func (this *User) deal_mode() {
+
+}
+
 // deal msg
 func (this *User) DoMessage(msg string) {
-	// //receive msg from client
-	// this.server.BroadCast(this, msg)
+
 	if msg == "who" {
 		this.server.maplock.Lock()
 		for _, user := range this.server.OnlineMap {
